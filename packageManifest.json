@@ -3,7 +3,7 @@
   "author": "rabidfurball",
   "minimumHEVersion": "2.3.0",
   "dateReleased": "2026-04-23",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "documentationLink": "https://github.com/rabidfurball/hubitat-aquascape/blob/main/README.md",
   "communityLink": "https://github.com/rabidfurball/hubitat-aquascape/issues",
   "drivers": [
@@ -11,6 +11,7 @@
       "id": "aquascape-smart-control-hub",
       "name": "Aquascape Smart Control Hub",
       "namespace": "rabidfurball",
+      "version": "0.1.1",
       "location": "https://raw.githubusercontent.com/rabidfurball/hubitat-aquascape/main/aquascape-smart-control-hub.groovy",
       "required": true
     }

@@ -26,7 +26,7 @@ import groovy.json.JsonOutput
 import hubitat.helper.ColorUtils
 
 @Field static final String API_BASE = "https://smartcontrol.aquascapeinc.com/external/api"
-@Field static final String DRIVER_VERSION = "0.1.0"
+@Field static final String DRIVER_VERSION = "0.1.1"
 
 @Field static final String EFFECT_SOLID = "Solid"
 @Field static final String EFFECT_WHITE_MODE = "White Mode"
@@ -288,14 +288,13 @@ def setWhiteMode() {
 }
 
 def setSolid() {
-    Integer r = ((device.currentValue("color") ?: "#FFFFFF").substring(1, 3) as Integer).toInteger()  // not used; we use stored hue/sat
-    // Pull current displayed color from V3 raw to be exact
+    // Freeze on whatever color the device is currently displaying.
     String v3 = device.currentValue("v3Raw") ?: ""
     def parts = v3.split('\u0000')
-    Integer rr = (parts.size() >= 1 && parts[0].isInteger()) ? (parts[0] as Integer) : 255
-    Integer gg = (parts.size() >= 2 && parts[1].isInteger()) ? (parts[1] as Integer) : 255
-    Integer bb = (parts.size() >= 3 && parts[2].isInteger()) ? (parts[2] as Integer) : 255
-    writeSolidRgb(rr, gg, bb)
+    Integer r = (parts.size() >= 1 && parts[0].isInteger()) ? (parts[0] as Integer) : 255
+    Integer g = (parts.size() >= 2 && parts[1].isInteger()) ? (parts[1] as Integer) : 255
+    Integer b = (parts.size() >= 3 && parts[2].isInteger()) ? (parts[2] as Integer) : 255
+    writeSolidRgb(r, g, b)
     sendEvent(name: "effectName", value: EFFECT_SOLID)
 }
 
