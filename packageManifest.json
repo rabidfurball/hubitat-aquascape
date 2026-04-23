@@ -1,19 +1,25 @@
 {
   "packageName": "Aquascape Smart Control Hub",
+  "id": "307adb92-d323-45fc-8854-464c17cc44b8",
   "author": "rabidfurball",
   "minimumHEVersion": "2.3.0",
   "dateReleased": "2026-04-23",
-  "version": "0.1.1",
+  "version": "0.1.2",
+  "releaseNotes": "v0.1.2 — fix manifest IDs (must be UUIDs per HPM spec)",
   "documentationLink": "https://github.com/rabidfurball/hubitat-aquascape/blob/main/README.md",
   "communityLink": "https://github.com/rabidfurball/hubitat-aquascape/issues",
+  "category": "Lights & Switches",
+  "tags": "Lights",
   "drivers": [
     {
-      "id": "aquascape-smart-control-hub",
+      "id": "c6cb660d-0b35-4ec5-9e20-a30d69bdf384",
       "name": "Aquascape Smart Control Hub",
       "namespace": "rabidfurball",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "location": "https://raw.githubusercontent.com/rabidfurball/hubitat-aquascape/main/aquascape-smart-control-hub.groovy",
-      "required": true
+      "required": true,
+      "oauth": false,
+      "description": "Driver for the Aquascape Smart Control Hub (model 84074) controlling color-changing pond/fountain lights."
     }
   ]
 }

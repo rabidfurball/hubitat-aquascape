@@ -26,7 +26,7 @@ import groovy.json.JsonOutput
 import hubitat.helper.ColorUtils
 
 @Field static final String API_BASE = "https://smartcontrol.aquascapeinc.com/external/api"
-@Field static final String DRIVER_VERSION = "0.1.1"
+@Field static final String DRIVER_VERSION = "0.1.2"
 
 @Field static final String EFFECT_SOLID = "Solid"
 @Field static final String EFFECT_WHITE_MODE = "White Mode"
