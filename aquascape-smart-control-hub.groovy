@@ -26,7 +26,7 @@ import groovy.json.JsonOutput
 import hubitat.helper.ColorUtils
 
 @Field static final String API_BASE = "https://smartcontrol.aquascapeinc.com/external/api"
-@Field static final String DRIVER_VERSION = "0.1.5"
+@Field static final String DRIVER_VERSION = "0.1.6"
 
 @Field static final String EFFECT_SOLID = "Solid"
 @Field static final String EFFECT_WHITE_MODE = "White Mode"
@@ -60,7 +60,7 @@ import hubitat.helper.ColorUtils
 
 metadata {
     definition(name: "Aquascape Smart Control Hub", namespace: "rabidfurball", author: "rabidfurball",
-               importUrl: "https://cdn.jsdelivr.net/gh/rabidfurball/hubitat-aquascape@main/aquascape-smart-control-hub.groovy") {
+               importUrl: "https://raw.githubusercontent.com/rabidfurball/hubitat-aquascape/main/aquascape-smart-control-hub.groovy") {
         capability "Switch"
         capability "SwitchLevel"
         capability "ColorControl"

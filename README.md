@@ -48,13 +48,13 @@ token in preferences.
 3. *(Until the manifest is in HPM's repository list)* you can install via
    the manifest URL directly:
    - HPM → Install → **From a URL** → paste:
-     `https://cdn.jsdelivr.net/gh/rabidfurball/hubitat-aquascape@main/packageManifest.json`
+     `https://raw.githubusercontent.com/rabidfurball/hubitat-aquascape/main/packageManifest.json`
 
 ### Manual
 
 1. In Hubitat: **Drivers Code** → **+ New Driver** → **Import**
 2. Paste this URL:
-   `https://cdn.jsdelivr.net/gh/rabidfurball/hubitat-aquascape@main/aquascape-smart-control-hub.groovy`
+   `https://raw.githubusercontent.com/rabidfurball/hubitat-aquascape/main/aquascape-smart-control-hub.groovy`
 3. Click **Import** → **Save**
 
 ## Setup
