@@ -26,11 +26,12 @@ import groovy.json.JsonOutput
 import hubitat.helper.ColorUtils
 
 @Field static final String API_BASE = "https://smartcontrol.aquascapeinc.com/external/api"
-@Field static final String DRIVER_VERSION = "0.1.3"
+@Field static final String DRIVER_VERSION = "0.1.4"
 
 @Field static final String EFFECT_SOLID = "Solid"
 @Field static final String EFFECT_WHITE_MODE = "White Mode"
 
+// Built-in palette presets (RGB triplets). Listed in display order.
 @Field static final Map PRESETS = [
     "Red/Orange/Green":            [[255,0,0],[255,187,0],[48,255,0]],
     "Dark Blue/Light Blue/Green":  [[5,44,187],[0,165,238],[48,255,0]],
@@ -42,8 +43,20 @@ import hubitat.helper.ColorUtils
     "Rainbow":                     [[255,0,0],[255,255,0],[0,255,0],[0,255,255],[0,0,255],[255,0,255]]
 ]
 
-// Effect dropdown shown to the user. Order matches the LightEffects index.
-@Field static final List EFFECT_LIST = [EFFECT_SOLID] + PRESETS.keySet().toList() + [EFFECT_WHITE_MODE]
+// Effect dropdown shown to the user. Indexed by LightEffects setEffect(idx).
+// Listed as a literal so static-init has no dependency on PRESETS.
+@Field static final List EFFECT_LIST = [
+    "Solid",
+    "Red/Orange/Green",
+    "Dark Blue/Light Blue/Green",
+    "Blue/Purple",
+    "Yellow/Orange",
+    "Red/White/Blue",
+    "Red/Green/White",
+    "Magenta/Blue/Orange",
+    "Rainbow",
+    "White Mode"
+]
 
 metadata {
     definition(name: "Aquascape Smart Control Hub", namespace: "rabidfurball", author: "rabidfurball",
@@ -56,22 +69,22 @@ metadata {
         capability "Refresh"
 
         attribute "animationSpeed", "number"
-        attribute "strobeMode", "string"      // "fade" / "strobe" / "n/a"
+        attribute "strobeMode", "string"
         attribute "v3Raw", "string"
         attribute "effectName", "string"
 
         command "setStrobe", [[name: "mode", type: "ENUM", constraints: ["fade", "strobe"]]]
-        command "setAnimationSpeed", [[name: "speed", type: "NUMBER", description: "1-10000 (matches the Aquascape app's slider)"]]
+        command "setAnimationSpeed", [[name: "speed", type: "NUMBER", description: "1-10000"]]
         command "setCustomPalette", [
-            [name: "palette", type: "STRING", description: "JSON array of [R,G,B] triplets, e.g. [[255,0,0],[0,255,0]]"],
+            [name: "palette", type: "STRING", description: "JSON array of [R,G,B] arrays"],
             [name: "strobeMode", type: "ENUM", constraints: ["fade", "strobe"]]
         ]
         command "setWhiteMode"
-        command "setSolid", [[name: "(no args)", type: "STRING", description: "Freezes lights on the current displayed color, drops any active animation"]]
+        command "setSolid"
     }
     preferences {
         input name: "token", type: "string", title: "Blynk Auth Token", required: true,
-              description: "Find in the Aquascape web dashboard at smartcontrol.aquascapeinc.com → Device → Device Info"
+              description: "Find in Aquascape web dashboard: Device > Device Info"
         input name: "pollInterval", type: "number", title: "Poll Interval (seconds)", defaultValue: 60, range: "10..600"
         input name: "logEnable", type: "bool", title: "Enable debug logging", defaultValue: false
     }
@@ -93,7 +106,7 @@ def initialize() {
     if (settings.token) {
         refresh()
     } else {
-        log.warn "Aquascape: no auth token set — set one in device preferences"
+        log.warn "Aquascape: no auth token set"
     }
 }
 
@@ -133,30 +146,29 @@ private void processV3(String v3) {
     Integer r = parts[0].isInteger() ? (parts[0] as Integer) : 0
     Integer g = parts[1].isInteger() ? (parts[1] as Integer) : 0
     Integer b = parts[2].isInteger() ? (parts[2] as Integer) : 0
-    boolean rgbMode = parts[3]?.toLowerCase() == "true"
+    String modeStr = parts[3] ?: ""
+    boolean rgbMode = modeStr.toLowerCase() == "true"
 
     def hsv = ColorUtils.rgbToHSV([r, g, b])
     sendEvent(name: "hue", value: hsv[0] as Integer)
     sendEvent(name: "saturation", value: hsv[1] as Integer)
     sendEvent(name: "color", value: ColorUtils.rgbToHEX([r, g, b]))
 
-    // Reverse-match the displayed state against known effects so effectName
-    // tracks both Hubitat-driven changes and edits made from the Aquascape app.
     String detectedEffect
     if (parts.size() <= 4) {
-        // 4 fields = solid color (no strobe, no palette).
         detectedEffect = (!rgbMode) ? EFFECT_WHITE_MODE : EFFECT_SOLID
         sendEvent(name: "strobeMode", value: "n/a")
     } else {
-        // animation: parts[4] = strobe flag, parts[5..] = palette
         sendEvent(name: "strobeMode", value: parts[4] == "1" ? "strobe" : "fade")
-        List<List<Integer>> palette = []
-        for (int i = 5; i + 2 < parts.size(); i += 3) {
-            palette << [
-                parts[i].isInteger()   ? (parts[i] as Integer)   : 0,
-                parts[i+1].isInteger() ? (parts[i+1] as Integer) : 0,
-                parts[i+2].isInteger() ? (parts[i+2] as Integer) : 0
-            ]
+        // Parse palette without typed generics (Hubitat sandbox is fussy).
+        def palette = []
+        int i = 5
+        while (i + 2 < parts.size()) {
+            def pr = parts[i].isInteger()   ? (parts[i] as Integer)   : 0
+            def pg = parts[i+1].isInteger() ? (parts[i+1] as Integer) : 0
+            def pb = parts[i+2].isInteger() ? (parts[i+2] as Integer) : 0
+            palette.add([pr, pg, pb])
+            i += 3
         }
         detectedEffect = matchPalette(palette) ?: "Custom"
     }
@@ -166,9 +178,7 @@ private void processV3(String v3) {
     }
 }
 
-private String matchPalette(List<List<Integer>> palette) {
-    PRESETS.each { name, preset -> if (palette == preset) return name }
-    // Groovy each doesn't break early; do it properly:
+private String matchPalette(palette) {
     for (entry in PRESETS) {
         if (palette == entry.value) return entry.key
     }
@@ -288,7 +298,6 @@ def setWhiteMode() {
 }
 
 def setSolid() {
-    // Freeze on whatever color the device is currently displaying.
     String v3 = device.currentValue("v3Raw") ?: ""
     def parts = v3.split('\u0000')
     Integer r = (parts.size() >= 1 && parts[0].isInteger()) ? (parts[0] as Integer) : 255
@@ -326,6 +335,5 @@ def writeCallback(response, data) {
     } else if (logEnable) {
         log.debug "Aquascape: wrote ${data.pin}=${data.value}"
     }
-    // Force a quick poll so attributes reflect the write within seconds.
     runIn(2, "refresh", [overwrite: true])
 }
