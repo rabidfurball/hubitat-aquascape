@@ -26,7 +26,7 @@ import groovy.json.JsonOutput
 import hubitat.helper.ColorUtils
 
 @Field static final String API_BASE = "https://smartcontrol.aquascapeinc.com/external/api"
-@Field static final String DRIVER_VERSION = "0.1.4"
+@Field static final String DRIVER_VERSION = "0.1.5"
 
 @Field static final String EFFECT_SOLID = "Solid"
 @Field static final String EFFECT_WHITE_MODE = "White Mode"
@@ -293,7 +293,13 @@ def setCustomPalette(paletteJson, strobeMode = "fade") {
 }
 
 def setWhiteMode() {
-    writePin("V3", "255%00255%00255%00false")
+    // Build with \u0000 + urlencode (NOT a literal "%00" string) — when this
+    // driver's source is POSTed via form-urlencoded body (HPM uses that),
+    // a literal "%00" gets misinterpreted as a percent-encoded null byte
+    // by Hubitat's form parser, which corrupts the source and silently
+    // breaks compilation. Took a while to find this one.
+    String v3 = "255\u0000255\u0000255\u0000false"
+    writePin("V3", URLEncoder.encode(v3, "UTF-8"))
     sendEvent(name: "effectName", value: EFFECT_WHITE_MODE)
 }
 
